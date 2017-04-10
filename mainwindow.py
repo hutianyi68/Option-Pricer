@@ -5,7 +5,7 @@
 # Created by: PyQt5 UI code generator 5.6
 #
 # WARNING! All changes made in this file will be lost!
-
+#from core import *
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 class Ui_MainWindow(object):
@@ -20,7 +20,7 @@ class Ui_MainWindow(object):
         self.centralWidget.setSizePolicy(sizePolicy)
         self.centralWidget.setObjectName("centralWidget")
         self.verticalLayout = QtWidgets.QVBoxLayout(self.centralWidget)
-        self.verticalLayout.setContentsMargins(11, 11, 11, 11)
+        self.verticalLayout.setContentsMargins(3,3,3,3)
         self.verticalLayout.setSpacing(6)
         self.verticalLayout.setObjectName("verticalLayout")
         self.label = QtWidgets.QLabel(self.centralWidget)
@@ -60,11 +60,11 @@ class Ui_MainWindow(object):
         self.line_4.setObjectName("line_4")
         self.verticalLayout.addWidget(self.line_4)
         self.horizontalLayout = QtWidgets.QHBoxLayout()
-        self.horizontalLayout.setContentsMargins(11, 11, 11, 11)
+        self.horizontalLayout.setContentsMargins(3,3,3,3)
         self.horizontalLayout.setSpacing(6)
         self.horizontalLayout.setObjectName("horizontalLayout")
         self.formLayout_2 = QtWidgets.QFormLayout()
-        self.formLayout_2.setContentsMargins(11, 11, 11, 11)
+        self.formLayout_2.setContentsMargins(3,3,3,3)
         self.formLayout_2.setSpacing(6)
         self.formLayout_2.setObjectName("formLayout_2")
         self.label_3 = QtWidgets.QLabel(self.centralWidget)
@@ -80,9 +80,11 @@ class Ui_MainWindow(object):
         self.comboBox.addItem("")
         self.comboBox.addItem("")
         self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.comboBox)
+        self.comboBox.activated.connect(self.comboBox_function) #main combobox combine function
+        
         self.horizontalLayout.addLayout(self.formLayout_2)
         self.formLayout = QtWidgets.QFormLayout()
-        self.formLayout.setContentsMargins(11, 11, 11, 11)
+        self.formLayout.setContentsMargins(3,3,3,3)
         self.formLayout.setSpacing(6)
         self.formLayout.setObjectName("formLayout")
         self.label_7 = QtWidgets.QLabel(self.centralWidget)
@@ -94,10 +96,14 @@ class Ui_MainWindow(object):
         self.comboBox_2.addItem("")
         self.comboBox_2.addItem("")
         self.comboBox_2.addItem("")
+        self.comboBox_2.addItem("")
+        self.comboBox_2.addItem("")
         self.formLayout.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.comboBox_2)
+        self.comboBox_2.activated.connect(self.comboBox_2_function) #combobox 2 function
+        
         self.horizontalLayout.addLayout(self.formLayout)
         self.formLayout_4 = QtWidgets.QFormLayout()
-        self.formLayout_4.setContentsMargins(11, 11, 11, 11)
+        self.formLayout_4.setContentsMargins(3,3,3,3)
         self.formLayout_4.setSpacing(6)
         self.formLayout_4.setObjectName("formLayout_4")
         self.label_8 = QtWidgets.QLabel(self.centralWidget)
@@ -109,9 +115,10 @@ class Ui_MainWindow(object):
         self.comboBox_3.addItem("")
         self.comboBox_3.addItem("")
         self.formLayout_4.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.comboBox_3)
+        
         self.horizontalLayout.addLayout(self.formLayout_4)
         self.formLayout_3 = QtWidgets.QFormLayout()
-        self.formLayout_3.setContentsMargins(11, 11, 11, 11)
+        self.formLayout_3.setContentsMargins(3,3,3,3)
         self.formLayout_3.setSpacing(6)
         self.formLayout_3.setObjectName("formLayout_3")
         self.label_4 = QtWidgets.QLabel(self.centralWidget)
@@ -130,11 +137,11 @@ class Ui_MainWindow(object):
         self.line.setObjectName("line")
         self.verticalLayout.addWidget(self.line)
         self.horizontalLayout_2 = QtWidgets.QHBoxLayout()
-        self.horizontalLayout_2.setContentsMargins(11, 11, 11, 11)
+        self.horizontalLayout_2.setContentsMargins(3,3,3,3)
         self.horizontalLayout_2.setSpacing(6)
         self.horizontalLayout_2.setObjectName("horizontalLayout_2")
         self.verticalLayout_2 = QtWidgets.QVBoxLayout()
-        self.verticalLayout_2.setContentsMargins(11, 11, 11, 11)
+        self.verticalLayout_2.setContentsMargins(3,3,3,3)
         self.verticalLayout_2.setSpacing(6)
         self.verticalLayout_2.setObjectName("verticalLayout_2")
         self.label_5 = QtWidgets.QLabel(self.centralWidget)
@@ -146,11 +153,11 @@ class Ui_MainWindow(object):
         self.label_5.setObjectName("label_5")
         self.verticalLayout_2.addWidget(self.label_5)
         self.horizontalLayout_3 = QtWidgets.QHBoxLayout()
-        self.horizontalLayout_3.setContentsMargins(11, 11, 11, 11)
+        self.horizontalLayout_3.setContentsMargins(3,3,3,3)
         self.horizontalLayout_3.setSpacing(6)
         self.horizontalLayout_3.setObjectName("horizontalLayout_3")
         self.formLayout_6 = QtWidgets.QFormLayout()
-        self.formLayout_6.setContentsMargins(11, 11, 11, 11)
+        self.formLayout_6.setContentsMargins(3,3,3,3)
         self.formLayout_6.setSpacing(6)
         self.formLayout_6.setObjectName("formLayout_6")
         self.label_9 = QtWidgets.QLabel(self.centralWidget)
@@ -169,7 +176,7 @@ class Ui_MainWindow(object):
         self.formLayout_6.setWidget(1, QtWidgets.QFormLayout.FieldRole, self.lineEdit_13)
         self.horizontalLayout_3.addLayout(self.formLayout_6)
         self.formLayout_5 = QtWidgets.QFormLayout()
-        self.formLayout_5.setContentsMargins(11, 11, 11, 11)
+        self.formLayout_5.setContentsMargins(3,3,3,3)
         self.formLayout_5.setSpacing(6)
         self.formLayout_5.setObjectName("formLayout_5")
         self.label_10 = QtWidgets.QLabel(self.centralWidget)
@@ -188,7 +195,7 @@ class Ui_MainWindow(object):
         self.line_3.setObjectName("line_3")
         self.horizontalLayout_2.addWidget(self.line_3)
         self.verticalLayout_3 = QtWidgets.QVBoxLayout()
-        self.verticalLayout_3.setContentsMargins(11, 11, 11, 11)
+        self.verticalLayout_3.setContentsMargins(3,3,3,3)
         self.verticalLayout_3.setSpacing(6)
         self.verticalLayout_3.setObjectName("verticalLayout_3")
         self.label_6 = QtWidgets.QLabel(self.centralWidget)
@@ -200,11 +207,11 @@ class Ui_MainWindow(object):
         self.label_6.setObjectName("label_6")
         self.verticalLayout_3.addWidget(self.label_6)
         self.horizontalLayout_4 = QtWidgets.QHBoxLayout()
-        self.horizontalLayout_4.setContentsMargins(11, 11, 11, 11)
+        self.horizontalLayout_4.setContentsMargins(3,3,3,3)
         self.horizontalLayout_4.setSpacing(6)
         self.horizontalLayout_4.setObjectName("horizontalLayout_4")
         self.formLayout_7 = QtWidgets.QFormLayout()
-        self.formLayout_7.setContentsMargins(11, 11, 11, 11)
+        self.formLayout_7.setContentsMargins(3,3,3,3)
         self.formLayout_7.setSpacing(6)
         self.formLayout_7.setObjectName("formLayout_7")
         self.label_11 = QtWidgets.QLabel(self.centralWidget)
@@ -223,7 +230,7 @@ class Ui_MainWindow(object):
         self.formLayout_7.setWidget(1, QtWidgets.QFormLayout.FieldRole, self.lineEdit_14)
         self.horizontalLayout_4.addLayout(self.formLayout_7)
         self.formLayout_8 = QtWidgets.QFormLayout()
-        self.formLayout_8.setContentsMargins(11, 11, 11, 11)
+        self.formLayout_8.setContentsMargins(3,3,3,3)
         self.formLayout_8.setSpacing(6)
         self.formLayout_8.setObjectName("formLayout_8")
         self.lineEdit_4 = QtWidgets.QLineEdit(self.centralWidget)
@@ -243,11 +250,11 @@ class Ui_MainWindow(object):
         self.line_2.setObjectName("line_2")
         self.verticalLayout.addWidget(self.line_2)
         self.horizontalLayout_5 = QtWidgets.QHBoxLayout()
-        self.horizontalLayout_5.setContentsMargins(11, 11, 11, 11)
+        self.horizontalLayout_5.setContentsMargins(3,3,3,3)
         self.horizontalLayout_5.setSpacing(6)
         self.horizontalLayout_5.setObjectName("horizontalLayout_5")
         self.formLayout_12 = QtWidgets.QFormLayout()
-        self.formLayout_12.setContentsMargins(11, 11, 11, 11)
+        self.formLayout_12.setContentsMargins(3,3,3,3)
         self.formLayout_12.setSpacing(6)
         self.formLayout_12.setObjectName("formLayout_12")
         self.label_13 = QtWidgets.QLabel(self.centralWidget)
@@ -266,7 +273,7 @@ class Ui_MainWindow(object):
         self.formLayout_12.setWidget(1, QtWidgets.QFormLayout.FieldRole, self.lineEdit_9)
         self.horizontalLayout_5.addLayout(self.formLayout_12)
         self.formLayout_11 = QtWidgets.QFormLayout()
-        self.formLayout_11.setContentsMargins(11, 11, 11, 11)
+        self.formLayout_11.setContentsMargins(3,3,3,3)
         self.formLayout_11.setSpacing(6)
         self.formLayout_11.setObjectName("formLayout_11")
         self.label_14 = QtWidgets.QLabel(self.centralWidget)
@@ -285,7 +292,7 @@ class Ui_MainWindow(object):
         self.formLayout_11.setWidget(1, QtWidgets.QFormLayout.FieldRole, self.lineEdit_10)
         self.horizontalLayout_5.addLayout(self.formLayout_11)
         self.formLayout_10 = QtWidgets.QFormLayout()
-        self.formLayout_10.setContentsMargins(11, 11, 11, 11)
+        self.formLayout_10.setContentsMargins(3,3,3,3)
         self.formLayout_10.setSpacing(6)
         self.formLayout_10.setObjectName("formLayout_10")
         self.label_15 = QtWidgets.QLabel(self.centralWidget)
@@ -304,7 +311,7 @@ class Ui_MainWindow(object):
         self.formLayout_10.setWidget(1, QtWidgets.QFormLayout.FieldRole, self.lineEdit_11)
         self.horizontalLayout_5.addLayout(self.formLayout_10)
         self.formLayout_9 = QtWidgets.QFormLayout()
-        self.formLayout_9.setContentsMargins(11, 11, 11, 11)
+        self.formLayout_9.setContentsMargins(3,3,3,3)
         self.formLayout_9.setSpacing(6)
         self.formLayout_9.setObjectName("formLayout_9")
         self.label_16 = QtWidgets.QLabel(self.centralWidget)
@@ -330,11 +337,11 @@ class Ui_MainWindow(object):
         self.line_5.setObjectName("line_5")
         self.verticalLayout.addWidget(self.line_5)
         self.gridLayout = QtWidgets.QGridLayout()
-        self.gridLayout.setContentsMargins(11, 11, 11, 11)
+        self.gridLayout.setContentsMargins(3,3,3,3)
         self.gridLayout.setSpacing(6)
         self.gridLayout.setObjectName("gridLayout")
         self.horizontalLayout_6 = QtWidgets.QHBoxLayout()
-        self.horizontalLayout_6.setContentsMargins(300, 11, 300, 11)
+        self.horizontalLayout_6.setContentsMargins(300, 3, 300, 3)
         self.horizontalLayout_6.setSpacing(6)
         self.horizontalLayout_6.setObjectName("horizontalLayout_6")
         self.pushButton_2 = QtWidgets.QPushButton(self.centralWidget)
@@ -345,6 +352,8 @@ class Ui_MainWindow(object):
         self.pushButton_2.setSizePolicy(sizePolicy)
         self.pushButton_2.setObjectName("pushButton_2")
         self.horizontalLayout_6.addWidget(self.pushButton_2)
+        self.pushButton_2.clicked.connect(self.calculate_value) #combine function, pushButton_2 is the calculate function 
+        
         self.pushButton_3 = QtWidgets.QPushButton(self.centralWidget)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
@@ -353,6 +362,8 @@ class Ui_MainWindow(object):
         self.pushButton_3.setSizePolicy(sizePolicy)
         self.pushButton_3.setObjectName("pushButton_3")
         self.horizontalLayout_6.addWidget(self.pushButton_3)
+        self.pushButton_3.clicked.connect(self.reset_value) #combine function, pushButton_3 is the reset function
+        
         self.pushButton = QtWidgets.QPushButton(self.centralWidget)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
@@ -361,6 +372,8 @@ class Ui_MainWindow(object):
         self.pushButton.setSizePolicy(sizePolicy)
         self.pushButton.setObjectName("pushButton")
         self.horizontalLayout_6.addWidget(self.pushButton)
+        self.pushButton.clicked.connect(self.reset_all_value) #combine function, pushButton is the reset function of all values
+        
         self.gridLayout.addLayout(self.horizontalLayout_6, 0, 0, 1, 1)
         self.verticalLayout.addLayout(self.gridLayout)
         self.line_6 = QtWidgets.QFrame(self.centralWidget)
@@ -369,7 +382,7 @@ class Ui_MainWindow(object):
         self.line_6.setObjectName("line_6")
         self.verticalLayout.addWidget(self.line_6)
         self.verticalLayout_4 = QtWidgets.QVBoxLayout()
-        self.verticalLayout_4.setContentsMargins(11, 11, 11, 11)
+        self.verticalLayout_4.setContentsMargins(3,3,3,3)
         self.verticalLayout_4.setSpacing(6)
         self.verticalLayout_4.setObjectName("verticalLayout_4")
         self.label_23 = QtWidgets.QLabel(self.centralWidget)
@@ -381,16 +394,18 @@ class Ui_MainWindow(object):
         self.verticalLayout_4.addWidget(self.label_23)
         self.label_24 = QtWidgets.QLabel(self.centralWidget)
         self.label_24.setText("")
-        self.label_24.setObjectName("label_24")
+        self.label_24.setObjectName("label_24") #label24 is the place to show the result
         self.verticalLayout_4.addWidget(self.label_24)
         self.verticalLayout.addLayout(self.verticalLayout_4)
         MainWindow.setCentralWidget(self.centralWidget)
+ 
         self.mainToolBar = QtWidgets.QToolBar(MainWindow)
         self.mainToolBar.setObjectName("mainToolBar")
         MainWindow.addToolBar(QtCore.Qt.TopToolBarArea, self.mainToolBar)
         self.statusBar = QtWidgets.QStatusBar(MainWindow)
         self.statusBar.setObjectName("statusBar")
         MainWindow.setStatusBar(self.statusBar)
+
 
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
@@ -401,13 +416,15 @@ class Ui_MainWindow(object):
         self.label.setText(_translate("MainWindow", "Option Pricer"))
         self.label_2.setText(_translate("MainWindow", "Designed by Lin YE (), Tingting ZHOU (), Tianyi HU()"))
         self.label_3.setText(_translate("MainWindow", "Function"))
-        self.comboBox.setItemText(0, _translate("MainWindow", "Inplied Volatility"))
+        self.comboBox.setItemText(0, _translate("MainWindow", "Implied Volatility"))
         self.comboBox.setItemText(1, _translate("MainWindow", "Option Price"))
         self.label_7.setText(_translate("MainWindow", "Option Type"))
         self.comboBox_2.setItemText(0, _translate("MainWindow", "American Option"))
-        self.comboBox_2.setItemText(1, _translate("MainWindow", "Asian Option"))
-        self.comboBox_2.setItemText(2, _translate("MainWindow", "European Option"))
-        self.comboBox_2.setItemText(3, _translate("MainWindow", "Basket Option"))
+        self.comboBox_2.setItemText(1, _translate("MainWindow", "European Option"))
+        self.comboBox_2.setItemText(2, _translate("MainWindow", "Arithmetic Asian"))
+        self.comboBox_2.setItemText(3, _translate("MainWindow", "Geometric Asian"))
+        self.comboBox_2.setItemText(4, _translate("MainWindow", "Arithmetic Basket"))
+        self.comboBox_2.setItemText(5, _translate("MainWindow", "Geometric Basket"))
         self.label_8.setText(_translate("MainWindow", "Method"))
         self.comboBox_3.setItemText(0, _translate("MainWindow", "Binomial Tree"))
         self.comboBox_3.setItemText(1, _translate("MainWindow", "Closed Form"))
@@ -444,14 +461,68 @@ class Ui_MainWindow(object):
         self.label_16.setText(_translate("MainWindow", "Repo Rate"))
         self.lineEdit_8.setText(_translate("MainWindow", "0.0"))
         self.label_20.setText(_translate("MainWindow", "Control Variate"))
-        self.comboBox_5.setItemText(0, _translate("MainWindow", "Without Control Variate"))
-        self.comboBox_5.setItemText(1, _translate("MainWindow", "With Geometric Option"))
+        self.comboBox_5.setItemText(0, _translate("MainWindow", "No Control Variate"))
+        self.comboBox_5.setItemText(1, _translate("MainWindow", "Has Control Variate"))
         self.pushButton_2.setText(_translate("MainWindow", "Calculate"))
         self.pushButton_3.setText(_translate("MainWindow", "Reset"))
         self.pushButton.setText(_translate("MainWindow", "Reset All"))
         self.label_23.setText(_translate("MainWindow", "Result:"))
+        self.calculatee_implied_volatility()
+       
+    def calculatee_implied_volatility(self):
+        self.comboBox_2.setDisabled(True)
+        self.comboBox_3.setDisabled(True)
+        self.comboBox_5.setDisabled(True)
+        
+    def comboBox_2_function(self):
+        if self.comboBox_2.isEnabled() == True:
+            self.comboBox_3.setEnabled(True)
+            if self.comboBox_2.currentIndex() == 0:
+                self.comboBox_3.setCurrentIndex(0)
+                self.comboBox_5.setDisabled(True)
+            if (self.comboBox_2.currentIndex() == 1) or (self.comboBox_2.currentIndex() == 3) or (self.comboBox_2.currentIndex() == 5):
+                self.comboBox_3.setCurrentIndex(1)
+                self.comboBox_5.setDisabled(True)
+            if (self.comboBox_2.currentIndex() == 2) or (self.comboBox_2.currentIndex() == 4):
+                self.comboBox_3.setCurrentIndex(2)
+                self.comboBox_5.setEnabled(True)
+        self.comboBox_3.setDisabled(True)
+        
+    def comboBox_function(self):
+        if self.comboBox.currentIndex() == 0:
+            self.calculatee_implied_volatility()
+        else:
+            self.comboBox_2.setEnabled(True)
+        
+    def calculate_value(self):
+        _translate = QtCore.QCoreApplication.translate
+        self.label_24.setText(_translate("MainWindow", "test"))
 
-
+    def reset_value(self):
+        _translate = QtCore.QCoreApplication.translate
+        self.lineEdit.setText(_translate("MainWindow", "0.0"))
+        self.lineEdit_10.setText(_translate("MainWindow", "0.0"))
+        self.lineEdit_11.setText(_translate("MainWindow", "0.0"))
+        self.lineEdit_13.setText(_translate("MainWindow", "0.0"))
+        self.lineEdit_14.setText(_translate("MainWindow", "0.0"))
+        self.lineEdit_2.setText(_translate("MainWindow", "0.0"))
+        self.lineEdit_3.setText(_translate("MainWindow", "0.0"))
+        self.lineEdit_4.setText(_translate("MainWindow", "0.0"))
+        self.lineEdit_5.setText(_translate("MainWindow", "0.0"))
+        self.lineEdit_6.setText(_translate("MainWindow", "0.0"))
+        self.lineEdit_7.setText(_translate("MainWindow", "0.0"))
+        self.lineEdit_8.setText(_translate("MainWindow", "0.0"))
+        self.lineEdit_9.setText(_translate("MainWindow", "0.0"))
+        
+    def reset_all_value(self):
+        self.reset_value()
+        self.calculatee_implied_volatility()
+        self.comboBox.setCurrentIndex(0)
+        self.comboBox_2.setCurrentIndex(0)
+        self.comboBox_3.setCurrentIndex(0)
+        self.comboBox_4.setCurrentIndex(0)
+        self.comboBox_5.setCurrentIndex(0)
+        
 if __name__ == "__main__":
     import sys
     app = 0
