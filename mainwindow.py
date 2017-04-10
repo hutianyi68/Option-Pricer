@@ -395,6 +395,7 @@ class Ui_MainWindow(object):
         self.label_24 = QtWidgets.QLabel(self.centralWidget)
         self.label_24.setText("")
         self.label_24.setObjectName("label_24") #label24 is the place to show the result
+        self.label_24.setAlignment(QtCore.Qt.AlignCenter)
         self.verticalLayout_4.addWidget(self.label_24)
         self.verticalLayout.addLayout(self.verticalLayout_4)
         MainWindow.setCentralWidget(self.centralWidget)
@@ -513,6 +514,7 @@ class Ui_MainWindow(object):
         self.lineEdit_7.setText(_translate("MainWindow", "0.0"))
         self.lineEdit_8.setText(_translate("MainWindow", "0.0"))
         self.lineEdit_9.setText(_translate("MainWindow", "0.0"))
+        self.label_24.setText(_translate("MainWindow", ""))
         
     def reset_all_value(self):
         self.reset_value()
@@ -531,5 +533,5 @@ if __name__ == "__main__":
     ui = Ui_MainWindow()
     ui.setupUi(MainWindow)
     MainWindow.show()
-    sys.exit(app.exec_())
+    app.exec_()
 
