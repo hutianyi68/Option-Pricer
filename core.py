@@ -6,6 +6,7 @@ Created on Sat Apr  8 10:18:27 2017
 """
 import numpy as np
 import scipy.stats as stats
+import sys
 DEFAULT_BINOMINAL_TREE_STEP = 2000
 
 def PriceByBSFormula(T, K, S0, r, sigma, OptType, q =None) :
@@ -18,12 +19,14 @@ def PriceByBSFormula(T, K, S0, r, sigma, OptType, q =None) :
 
 def PriceBySnell(T, K, S0, r, sigma, OptType, N = DEFAULT_BINOMINAL_TREE_STEP):
     val_num_steps = N or DEFAULT_BINOMINAL_TREE_STEP
+    sys.setrecursionlimit(val_num_steps*2)
     val_cache = {}
 
     dt = float(T) / val_num_steps
     up_fact= np.exp(sigma * (dt ** 0.5))
     down_fact = 1.0 / up_fact
     prob_up = (np.exp((r ) * dt) - down_fact) / (up_fact - down_fact)
+    
     def spot_price(num_ups, num_downs):
         return (S0) * (up_fact ** (num_ups - num_downs))
     def node_value(n, num_ups, num_downs):
@@ -130,12 +133,7 @@ def PriceByMCSimulationForArthmBasket(T, K, S1, S2, r, sigma1, sigma2, rho, OptT
         
     return OptVal, LCI, RCI
 
-    
-    
-    
-    
-    
-    
-    
+if __name__=="__main__":
+    print (PriceBySnell(3, 100, 100, 0.05, 0.1, "CALL", 2000))
     
     
