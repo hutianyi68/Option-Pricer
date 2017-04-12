@@ -525,13 +525,4 @@ class Ui_MainWindow(object):
         self.comboBox_4.setCurrentIndex(0)
         self.comboBox_5.setCurrentIndex(0)
         
-if __name__ == "__main__":
-    import sys
-    app = 0
-    app = QtWidgets.QApplication(sys.argv)
-    MainWindow = QtWidgets.QMainWindow()
-    ui = Ui_MainWindow()
-    ui.setupUi(MainWindow)
-    MainWindow.show()
-    app.exec_()
 
