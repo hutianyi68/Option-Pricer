@@ -1,8 +1,6 @@
 import numpy as np
-import statistics
 from numba import jit
-from timeit import default_timer as timer
-from scipy.stats import norm, mstats
+from scipy.stats import norm
 
 def black_scholes_model(r, q, s_0, k, sigma, t, option_type):
     d_1 = (np.log(s_0/k)+(r-q+0.5*np.square(sigma))*t)/(np.sqrt(t)*sigma)
@@ -77,7 +75,7 @@ def geometric_asian_option(r, s_0, k, t, sigma, n, option_type):
     if option_type == "Put":
         return np.exp(-r*t)*(k*norm.cdf(-d_2)-s_0*np.exp(mu_bar*t)*norm.cdf(-d_1))
     
-@jit  
+@jit
 def arithmetic_asian_option(r, s_0, K, t, sigma, n, option_type, mc_times, control_variate):
     df = np.exp(-r*t)
     drift = (r-0.5*np.square(sigma))*t/n
@@ -150,120 +148,3 @@ def arithmetic_basket_option(r, s1_0, s2_0, k, t, sigma1, sigma2, rho, option_ty
         result_mean = option_arith_cv.mean()
         result_std = option_arith_cv.std()/np.sqrt(mc_times)
     return result_mean, result_mean-1.96*result_std, result_mean+1.96*result_std
-
-def arithmetic_basket_option_1(r, s1_0, s2_0, k, t, sigma1, sigma2, rho, option_type, mc_times, control_variate):
-    geo_mean = geometric_basket_option(r, s1_0, s2_0, k, t, sigma1, sigma2, rho, option_type)
-    geometric_mean, arithmetic_mean = [], []
-    for i in range (0,mc_times):
-        z_1 = np.random.normal(0,1)
-        z_temp = np.random.normal(0,1)
-        z_2 = rho*z_1+np.sqrt(1-rho**2)*z_temp
-        stock1_price = s1_0*np.exp((r-0.5*sigma1**2)*t+sigma1*np.sqrt(t)*z_1)
-        stock2_price = s2_0*np.exp((r-0.5*sigma2**2)*t+sigma2*np.sqrt(t)*z_2)
-        geometric_mean_mc = mstats.gmean([stock1_price,stock2_price])
-        arithmetic_mean_mc = np.mean([stock1_price,stock2_price])
-        if option_type == "Call":
-            geometric_mean.append(np.exp(-r*t)*max(geometric_mean_mc-k,0))
-            arithmetic_mean.append(np.exp(-r*t)*max(arithmetic_mean_mc-k,0))
-        else:
-            geometric_mean.append(np.exp(-r*t)*max(k-geometric_mean_mc,0))
-            arithmetic_mean.append(np.exp(-r*t)*max(k-arithmetic_mean_mc,0))
-    if control_variate == False:
-        result_mean = np.mean(arithmetic_mean)
-        result_std = np.sqrt(statistics.variance(arithmetic_mean))
-    else:
-        cov = np.cov(arithmetic_mean, geometric_mean)[0,1]
-        theta = cov/statistics.variance(geometric_mean)
-        print (cov, theta, np.mean(geometric_mean), geo_mean)
-        arithmetic_mean_cv = arithmetic_mean + theta*(geo_mean - geometric_mean)
-        result_mean = np.mean(arithmetic_mean_cv)
-        result_std = np.var(arithmetic_mean_cv)
-    print (result_mean, result_std)
-    return [result_mean-norm.ppf(0.95)*result_std/np.sqrt(mc_times), result_mean+norm.ppf(0.95)*result_std/np.sqrt(mc_times)]
-    
-if __name__=="__main__":
-    r = 0.05
-    t = 3
-    s_0 = 100 
-    s1_0=100
-    s2_0=100
-    k = 100
-    sigma = 0.3
-    q = 0
-    time = timer()
-    print("============================European=====================")
-    print(black_scholes_model(r, q, s_0, k, sigma, t, "Put"))
-    print(black_scholes_model(r, q, s_0, k, sigma, t, "Call"))
-    print("============================AMERICAN=====================")
-    print(american_option(r, s_0, k, t, sigma, 100, "Put"))
-    print(american_option(r, s_0, k, t, sigma, 100, "Call"))
-    print("============================GmtrAsian=====================")
-    
-    print (geometric_asian_option(r, s_0, k, t, sigma, 50, "Put"))
-    print (geometric_asian_option(r, s_0, k, t, sigma, 100, "Put"))
-    print (geometric_asian_option(r, s_0, k, t, 0.4, 50, "Put"))
-    print("Kay")
-    print (geometric_asian_option(r, s_0, k, t, sigma, 50, "Call"))
-    print (geometric_asian_option(r, s_0, k, t, sigma, 100, "Call"))
-    print (geometric_asian_option(r, s_0, k, t, 0.4, 50, "Call"))
-    print("===========================ArthmAsian NoCont=====================")
-    print("Kay")
-    print(arithmetic_asian_option(r, s_0, k, t, 0.3, 50, "Put", 100000, False))
-    print(arithmetic_asian_option(r, s_0, k, t, 0.3, 100, "Put", 30, False))
-    print(arithmetic_asian_option(r, s_0, k, t, 0.4, 50, "Put", 30, False))
-    print("Kay")
-    print(arithmetic_asian_option(r, s_0, k, t, 0.3, 50, "Call", 100000, False))
-    print(arithmetic_asian_option(r, s_0, k, t, 0.3, 100, "Call", 30, False))
-    print(arithmetic_asian_option(r, s_0, k, t, 0.4, 50, "Call", 30, False))
-    print("===========================ArthmAsian Cont=====================")
-    print("Kay")
-    print(arithmetic_asian_option(r, s_0, k, t, 0.3, 50, "Put", 100000, True))
-    print(arithmetic_asian_option(r, s_0, k, t, 0.3, 100, "Put", 30, True))
-    print(arithmetic_asian_option(r, s_0, k, t, 0.4, 50, "Put", 30, True))
-    print("Kay")
-    print(arithmetic_asian_option(r, s_0, k, t, 0.3, 50, "Call", 100000, True))
-    print(arithmetic_asian_option(r, s_0, k, t, 0.3, 100, "Call", 30, True))
-    print(arithmetic_asian_option(r, s_0, k, t, 0.4, 50, "Call", 30, True))
-    print("============================GmtrBasket=====================")
-    print(geometric_basket_option(r, s1_0, s2_0, k, t, 0.3, 0.3, 0.5, "Put"))
-    print(geometric_basket_option(r, s1_0, s2_0, k, t, 0.3, 0.3, 0.9, "Put"))
-    print(geometric_basket_option(r, s1_0, s2_0, k, t, 0.1, 0.3, 0.5, "Put"))
-    print(geometric_basket_option(r, s1_0, s2_0, 80, t, 0.3, 0.3, 0.5, "Put"))
-    print(geometric_basket_option(r, s1_0, s2_0, 120, t, 0.3, 0.3, 0.5, "Put"))
-    print(geometric_basket_option(r, s1_0, s2_0, k, t, 0.5, 0.5, 0.5, "Put"))
-    print("Kay")
-    print(geometric_basket_option(r, s1_0, s2_0, k, t, 0.3, 0.3, 0.5, "Call"))
-    print(geometric_basket_option(r, s1_0, s2_0, k, t, 0.3, 0.3, 0.9, "Call"))
-    print(geometric_basket_option(r, s1_0, s2_0, k, t, 0.1, 0.3, 0.5, "Call"))
-    print(geometric_basket_option(r, s1_0, s2_0, 80, t, 0.3, 0.3, 0.5, "Call"))
-    print(geometric_basket_option(r, s1_0, s2_0, 120, t, 0.3, 0.3, 0.5, "Call"))
-    print(geometric_basket_option(r, s1_0, s2_0, k, t, 0.5, 0.5, 0.5, "Call"))
-    print("============================ArthmBasket NOCont=====================")
-    print(arithmetic_basket_option(r, s1_0, s2_0, k, t, 0.3, 0.3, 0.5, "Put", 100000, False))
-    print(arithmetic_basket_option(r, s1_0, s2_0, k, t, 0.3, 0.3, 0.9, "Put", 100, False))
-    print(arithmetic_basket_option(r, s1_0, s2_0, k, t, 0.1, 0.3, 0.5, "Put", 100, False))
-    print(arithmetic_basket_option(r, s1_0, s2_0, 80, t, 0.3, 0.3, 0.5, "Put", 100, False))
-    print(arithmetic_basket_option(r, s1_0, s2_0, 120, t, 0.3, 0.3, 0.5, "Put", 100, False))
-    print(arithmetic_basket_option(r, s1_0, s2_0, k, t, 0.5, 0.5, 0.5, "Put", 100, False))
-    print("Kay")
-    print(arithmetic_basket_option(r, s1_0, s2_0, k, t, 0.3, 0.3, 0.5, "Call", 100000, False))
-    print(arithmetic_basket_option(r, s1_0, s2_0, k, t, 0.3, 0.3, 0.9, "Call", 100, False))
-    print(arithmetic_basket_option(r, s1_0, s2_0, k, t, 0.1, 0.3, 0.5, "Call", 100, False))
-    print(arithmetic_basket_option(r, s1_0, s2_0, 80, t, 0.3, 0.3, 0.5, "Call", 100, False))
-    print(arithmetic_basket_option(r, s1_0, s2_0, 120, t, 0.3, 0.3, 0.5, "Call", 100, False))
-    print(arithmetic_basket_option(r, s1_0, s2_0, k, t, 0.5, 0.5, 0.5, "Call", 100, False))   
-    print("============================ArthmBasket  Cont=====================")
-    print(arithmetic_basket_option(r, s1_0, s2_0, k, t, 0.3, 0.3, 0.5, "Put", 100000, True))
-    print(arithmetic_basket_option(r, s1_0, s2_0, k, t, 0.3, 0.3, 0.9, "Put", 100, True))
-    print(arithmetic_basket_option(r, s1_0, s2_0, k, t, 0.1, 0.3, 0.5, "Put", 100, True))
-    print(arithmetic_basket_option(r, s1_0, s2_0, 80, t, 0.3, 0.3, 0.5, "Put", 100, True))
-    print(arithmetic_basket_option(r, s1_0, s2_0, 120, t, 0.3, 0.3, 0.5, "Put", 100, True))
-    print(arithmetic_basket_option(r, s1_0, s2_0, k, t, 0.5, 0.5, 0.5, "Put", 100, True))
-    print("Kay")
-    print(arithmetic_basket_option(r, s1_0, s2_0, k, t, 0.3, 0.3, 0.5, "Call", 100000, True))
-    print(arithmetic_basket_option(r, s1_0, s2_0, k, t, 0.3, 0.3, 0.9, "Call", 100, True))
-    print(arithmetic_basket_option(r, s1_0, s2_0, k, t, 0.1, 0.3, 0.5, "Call", 100, True))
-    print(arithmetic_basket_option(r, s1_0, s2_0, 80, t, 0.3, 0.3, 0.5, "Call", 100, True))
-    print(arithmetic_basket_option(r, s1_0, s2_0, 120, t, 0.3, 0.3, 0.5, "Call", 100, True))
-    print(arithmetic_basket_option(r, s1_0, s2_0, k, t, 0.5, 0.5, 0.5, "Call", 100, True)) 
-    print("The total time is: " + str(timer() - time))
