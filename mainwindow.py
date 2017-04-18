@@ -7,6 +7,7 @@
 # WARNING! All changes made in this file will be lost!
 #from core import *
 from PyQt5 import QtCore, QtGui, QtWidgets
+from interlayer import *
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -236,10 +237,11 @@ class Ui_MainWindow(object):
         self.lineEdit_4 = QtWidgets.QLineEdit(self.centralWidget)
         self.lineEdit_4.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.lineEdit_4.setObjectName("lineEdit_4")
-        self.formLayout_8.setWidget(1, QtWidgets.QFormLayout.FieldRole, self.lineEdit_4)
+        self.formLayout_8.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.lineEdit_4)
         self.label_12 = QtWidgets.QLabel(self.centralWidget)
         self.label_12.setObjectName("label_12")
-        self.formLayout_8.setWidget(1, QtWidgets.QFormLayout.LabelRole, self.label_12)
+        self.formLayout_8.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.label_12)
+      
         self.horizontalLayout_4.addLayout(self.formLayout_8)
         self.verticalLayout_3.addLayout(self.horizontalLayout_4)
         self.horizontalLayout_2.addLayout(self.verticalLayout_3)
@@ -415,7 +417,7 @@ class Ui_MainWindow(object):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "COMP 7305 Assignment 3"))
         self.label.setText(_translate("MainWindow", "Option Pricer"))
-        self.label_2.setText(_translate("MainWindow", "Designed by Lin YE (), Tingting ZHOU (), Tianyi HU()"))
+        self.label_2.setText(_translate("MainWindow", "Designed by Tianyi HU(u3539128)"))
         self.label_3.setText(_translate("MainWindow", "Function"))
         self.comboBox.setItemText(0, _translate("MainWindow", "Implied Volatility"))
         self.comboBox.setItemText(1, _translate("MainWindow", "Option Price"))
@@ -446,7 +448,7 @@ class Ui_MainWindow(object):
         self.label_22.setText(_translate("MainWindow", "Volatility"))
         self.lineEdit_14.setText(_translate("MainWindow", "0.0"))
         self.lineEdit_4.setText(_translate("MainWindow", "0.0"))
-        self.label_12.setText(_translate("MainWindow", "Strike Price"))
+        self.label_12.setText(_translate("MainWindow", "Rho"))
         self.label_13.setText(_translate("MainWindow", "Time to Maturity"))
         self.lineEdit_5.setText(_translate("MainWindow", "0.0"))
         self.label_17.setText(_translate("MainWindow", "Step Number"))
@@ -467,43 +469,234 @@ class Ui_MainWindow(object):
         self.pushButton_2.setText(_translate("MainWindow", "Calculate"))
         self.pushButton_3.setText(_translate("MainWindow", "Reset"))
         self.pushButton.setText(_translate("MainWindow", "Reset All"))
-        self.label_23.setText(_translate("MainWindow", "Result:"))
-        self.calculatee_implied_volatility()
+        self.label_23.setText(_translate("MainWindow", "Message:"))
+        self.calculate_implied_volatility()
        
-    def calculatee_implied_volatility(self):
+    def calculate_implied_volatility(self):
         self.comboBox_2.setDisabled(True)
         self.comboBox_3.setDisabled(True)
         self.comboBox_5.setDisabled(True)
+        self.lineEdit.setEnabled(True)
+        self.lineEdit_13.setDisabled(True)
+        self.lineEdit_2.setEnabled(True)
+        self.lineEdit_3.setDisabled(True)
+        self.lineEdit_14.setDisabled(True)
+        self.lineEdit_4.setDisabled(True)
+        self.lineEdit_8.setEnabled(True)
+        self.lineEdit_9.setDisabled(True)
+        self.lineEdit_10.setDisabled(True)
+        self.lineEdit_11.setDisabled(True)
+        self.lineEdit_6.setEnabled(True)
+        
+    def calculate_american_option(self):
+        self.comboBox_3.setCurrentIndex(0)
+        self.comboBox_5.setDisabled(True)
+        self.lineEdit.setEnabled(True)
+        self.lineEdit_13.setEnabled(True)
+        self.lineEdit_2.setEnabled(True)
+        self.lineEdit_3.setDisabled(True)
+        self.lineEdit_14.setDisabled(True)
+        self.lineEdit_4.setDisabled(True)
+        self.lineEdit_8.setDisabled(True)
+        self.lineEdit_6.setDisabled(True)
+        self.lineEdit_9.setEnabled(True)
+        self.lineEdit_10.setDisabled(True)
+        self.lineEdit_11.setDisabled(True)
+        
+    def calculate_european_option(self):
+        self.comboBox_3.setCurrentIndex(1)
+        self.comboBox_5.setDisabled(True)
+        self.lineEdit.setEnabled(True)
+        self.lineEdit_13.setEnabled(True)
+        self.lineEdit_2.setEnabled(True)
+        self.lineEdit_3.setDisabled(True)
+        self.lineEdit_14.setDisabled(True)
+        self.lineEdit_4.setDisabled(True)
+        self.lineEdit_8.setEnabled(True)
+        self.lineEdit_6.setDisabled(True)
+        self.lineEdit_9.setDisabled(True)
+        self.lineEdit_10.setDisabled(True)
+        self.lineEdit_11.setDisabled(True)
+        
+    def calculate_geometric_asian(self):
+        self.comboBox_3.setCurrentIndex(1)
+        self.comboBox_5.setDisabled(True)
+        self.lineEdit.setEnabled(True)
+        self.lineEdit_13.setEnabled(True)
+        self.lineEdit_2.setEnabled(True)
+        self.lineEdit_3.setDisabled(True)
+        self.lineEdit_14.setDisabled(True)
+        self.lineEdit_4.setDisabled(True)
+        self.lineEdit_8.setDisabled(True)
+        self.lineEdit_6.setDisabled(True)
+        self.lineEdit_9.setDisabled(True)
+        self.lineEdit_10.setEnabled(True)
+        self.lineEdit_11.setDisabled(True)
+        
+    def calculate_geometric_basket(self):
+        self.comboBox_3.setCurrentIndex(1)
+        self.comboBox_5.setDisabled(True)
+        self.lineEdit.setEnabled(True)
+        self.lineEdit_13.setEnabled(True)
+        self.lineEdit_2.setEnabled(True)
+        self.lineEdit_3.setEnabled(True)
+        self.lineEdit_14.setEnabled(True)
+        self.lineEdit_4.setEnabled(True)
+        self.lineEdit_8.setDisabled(True)
+        self.lineEdit_6.setDisabled(True)
+        self.lineEdit_9.setDisabled(True)
+        self.lineEdit_10.setDisabled(True)
+        self.lineEdit_11.setDisabled(True)
+        
+    def calculate_arithmetic_asian(self):
+        self.comboBox_3.setCurrentIndex(2)
+        self.comboBox_5.setEnabled(True)
+        self.lineEdit.setEnabled(True)
+        self.lineEdit_13.setEnabled(True)
+        self.lineEdit_2.setEnabled(True)
+        self.lineEdit_3.setDisabled(True)
+        self.lineEdit_14.setDisabled(True)
+        self.lineEdit_4.setDisabled(True)
+        self.lineEdit_8.setDisabled(True)
+        self.lineEdit_6.setDisabled(True)
+        self.lineEdit_9.setDisabled(True)
+        self.lineEdit_10.setEnabled(True)
+        self.lineEdit_11.setEnabled(True)
+        
+    def calculate_arithmetic_basket(self):
+        self.comboBox_3.setCurrentIndex(2)
+        self.comboBox_5.setEnabled(True)
+        self.lineEdit.setEnabled(True)
+        self.lineEdit_13.setEnabled(True)
+        self.lineEdit_2.setEnabled(True)
+        self.lineEdit_3.setEnabled(True)
+        self.lineEdit_14.setEnabled(True)
+        self.lineEdit_4.setEnabled(True)
+        self.lineEdit_8.setDisabled(True)
+        self.lineEdit_6.setDisabled(True)
+        self.lineEdit_9.setDisabled(True)
+        self.lineEdit_10.setDisabled(True)
+        self.lineEdit_11.setEnabled(True)
         
     def comboBox_2_function(self):
         if self.comboBox_2.isEnabled() == True:
             self.comboBox_3.setEnabled(True)
             if self.comboBox_2.currentIndex() == 0:
-                self.comboBox_3.setCurrentIndex(0)
-                self.comboBox_5.setDisabled(True)
-            if (self.comboBox_2.currentIndex() == 1) or (self.comboBox_2.currentIndex() == 3) or (self.comboBox_2.currentIndex() == 5):
-                self.comboBox_3.setCurrentIndex(1)
-                self.comboBox_5.setDisabled(True)
-            if (self.comboBox_2.currentIndex() == 2) or (self.comboBox_2.currentIndex() == 4):
-                self.comboBox_3.setCurrentIndex(2)
-                self.comboBox_5.setEnabled(True)
+                self.calculate_american_option()
+            if self.comboBox_2.currentIndex() == 1:
+                self.calculate_european_option()
+            if self.comboBox_2.currentIndex() == 3:
+                self.calculate_geometric_asian()
+            if self.comboBox_2.currentIndex() == 5:
+                self.calculate_geometric_basket()
+            if self.comboBox_2.currentIndex() == 2:
+                self.calculate_arithmetic_asian()
+            if self.comboBox_2.currentIndex() == 4:
+                self.calculate_arithmetic_basket()
         self.comboBox_3.setDisabled(True)
         
     def comboBox_function(self):
         if self.comboBox.currentIndex() == 0:
-            self.calculatee_implied_volatility()
+            self.calculate_implied_volatility()
         else:
             self.comboBox_2.setEnabled(True)
+            self.calculate_american_option()
         
     def calculate_value(self):
         _translate = QtCore.QCoreApplication.translate
-        self.label_24.setText(_translate("MainWindow", "test"))
+        try:
+            r = float(self.lineEdit_7.text())
+        except Exception:
+            self.label_24.setText(_translate("MainWindow", "Input of risk free rate must be floating number !"))
+            return
+            pass
+        try:
+            q = float(self.lineEdit_8.text())
+        except Exception:
+            self.label_24.setText(_translate("MainWindow", "Repo rate must be floating number !"))
+            return
+            pass
+        try:
+            price = float(self.lineEdit_6.text())
+        except Exception:
+            self.label_24.setText(_translate("MainWindow", "Option premium must be floating number !"))
+            return
+            pass
+        try:
+            t = float(self.lineEdit_5.text())
+        except Exception:
+            self.label_24.setText(_translate("MainWindow", "Time to maturity must be floating number !"))
+            return
+            pass
+        try:
+            rho = float(self.lineEdit_4.text())
+        except Exception:
+            self.label_24.setText(_translate("MainWindow", "Correlation among two securities must be floating number !"))
+            return
+            pass
+        try:
+            s_1 = float(self.lineEdit.text())
+            s_2 = float(self.lineEdit_3.text())
+        except Exception:
+            self.label_24.setText(_translate("MainWindow", "Input of security price must be floating number !"))
+            return
+            pass
+        try:
+            v_1 = float(self.lineEdit_13.text())
+            v_2 = float(self.lineEdit_14.text())
+        except Exception:
+            self.label_24.setText(_translate("MainWindow", "Input of volatility must be floating number !"))
+            return
+            pass
+        try:
+            k_1 = float(self.lineEdit_2.text())
+        except Exception:
+            self.label_24.setText(_translate("MainWindow", "Input of strike price must be floating number !"))
+            return
+            pass
+        try:
+            step = int(self.lineEdit_9.text())
+        except Exception:
+            self.label_24.setText(_translate("MainWindow", "Number of binomial tree steps must be integer !"))
+            return
+            pass
+        try:
+            observation = int(self.lineEdit_10.text())
+        except Exception:
+            self.label_24.setText(_translate("MainWindow", "Observation times must be integer !"))
+            return
+            pass
+        try:
+            mc_times = int(self.lineEdit_11.text())
+        except Exception:
+            self.label_24.setText(_translate("MainWindow", "Monte Carlo silumation times must be integer !"))
+            return
+            pass
+        function1, function2, function3, function4, function5 = self.comboBox.currentText(),\
+        self.comboBox_2.currentText(), self.comboBox_3.currentText(), self.comboBox_4.currentText(),\
+        self.comboBox_5.currentText()
+        if function1 == "Implied Volatility":
+            result = calculate_vol_interlayer(r, q, s_1, k_1, t, price, function4)
+        else:
+            if function2 == "American Option":
+                result = calculate_american_interlayer(r, s_1, k_1, t, v_1, step, function4)
+            if function2 == "European Option":
+                result = calculate_european_interlayer(r, q, s_1, k_1, v_1, t, function4)
+            if function2 == "Geometric Asian":
+                result = calculate_geo_asian_interlayer(r, s_1, k_1, t, v_1, observation, function4)
+            if function2 == "Geometric Basket":
+                result = calculate_geo_basket_interlayer(r, s_1, s_2, k_1, t, v_1, v_2, rho, function4)
+            if function2 == "Arithmetic Asian":
+                result = calculate_arith_asian_interlayer(r, s_1, k_1, t, v_1, observation, function4, mc_times, function5)
+            if function2 == "Arithmetic Basket":
+                result = calculate_arith_basket_interlayer(r, s_1, s_2, k_1, t, v_1, v_2, rho, function4, mc_times, function5)
+        self.label_24.setText(_translate("MainWindow", str(result)))
 
     def reset_value(self):
         _translate = QtCore.QCoreApplication.translate
         self.lineEdit.setText(_translate("MainWindow", "0.0"))
-        self.lineEdit_10.setText(_translate("MainWindow", "0.0"))
-        self.lineEdit_11.setText(_translate("MainWindow", "0.0"))
+        self.lineEdit_10.setText(_translate("MainWindow", "0"))
+        self.lineEdit_11.setText(_translate("MainWindow", "0"))
         self.lineEdit_13.setText(_translate("MainWindow", "0.0"))
         self.lineEdit_14.setText(_translate("MainWindow", "0.0"))
         self.lineEdit_2.setText(_translate("MainWindow", "0.0"))
@@ -513,12 +706,12 @@ class Ui_MainWindow(object):
         self.lineEdit_6.setText(_translate("MainWindow", "0.0"))
         self.lineEdit_7.setText(_translate("MainWindow", "0.0"))
         self.lineEdit_8.setText(_translate("MainWindow", "0.0"))
-        self.lineEdit_9.setText(_translate("MainWindow", "0.0"))
+        self.lineEdit_9.setText(_translate("MainWindow", "0"))
         self.label_24.setText(_translate("MainWindow", ""))
         
     def reset_all_value(self):
         self.reset_value()
-        self.calculatee_implied_volatility()
+        self.calculate_implied_volatility()
         self.comboBox.setCurrentIndex(0)
         self.comboBox_2.setCurrentIndex(0)
         self.comboBox_3.setCurrentIndex(0)

@@ -1,139 +1,269 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Sat Apr  8 10:18:27 2017
-
-@author: Lyn Ye
-"""
 import numpy as np
-import scipy.stats as stats
-import sys
-DEFAULT_BINOMINAL_TREE_STEP = 2000
+import statistics
+from numba import jit
+from timeit import default_timer as timer
+from scipy.stats import norm, mstats
 
-def PriceByBSFormula(T, K, S0, r, sigma, OptType, q =None) :
-    d1 = ((np.log(S0 / K) + (r - q) * T) / (sigma * np.sqrt(T))+ 0.5 * sigma * np.sqrt(T))
-    d2 = d1 - (sigma * np.sqrt(T))
-    if OptType == "CALL":
-        return (S0 * np.exp(-q * T) * stats.norm.cdf(d1)- K * np.exp(-r * T) * stats.norm.cdf(d2))
-    else: 
-       return (- S0 * np.exp(-q * T) *stats.norm.cdf(-d1) + K * np.exp(-r * T) * stats.norm.cdf(-d2))
+def black_scholes_model(r, q, s_0, k, sigma, t, option_type):
+    d_1 = (np.log(s_0/k)+(r-q+0.5*np.square(sigma))*t)/(np.sqrt(t)*sigma)
+    d_2 = (np.log(s_0/k)+(r-q-0.5*np.square(sigma))*t)/(np.sqrt(t)*sigma)
+    if option_type == "Call":
+        return s_0*np.exp(-q*t)*norm.cdf(d_1) - k*np.exp(-r*t)*norm.cdf(d_2)
+    if option_type == "Put":
+        return k*np.exp(-r*t)*norm.cdf(-d_2) - s_0*np.exp(-q*t)*norm.cdf(-d_1)
 
-def PriceBySnell(T, K, S0, r, sigma, OptType, N = DEFAULT_BINOMINAL_TREE_STEP):
-    val_num_steps = N or DEFAULT_BINOMINAL_TREE_STEP
-    sys.setrecursionlimit(val_num_steps*2)
-    val_cache = {}
+def calculate_vol_detail(option_type, sigma, stock, strike, price, q, r, t, accuracy, time):
+    if (option_type == "Put") and (price < (strike*np.exp(-r*t) - stock*np.exp(-q*t))):
+        return "Price is out of the valid range !"
+    if (option_type == "Call") and (price < (- strike*np.exp(-r*t) + stock*np.exp(-q*t))):
+        return "Price is out of the valid range !"
+    if (sigma < 0) or (stock <= 0) or (strike <= 0 ):
+        return "NaN"
+    d_1 = (np.log(stock/strike)+(r-q+0.5*np.power(sigma,2))*t)/(sigma*np.sqrt(t))
+    d_2 = (np.log(stock/strike)+(r-q-0.5*np.power(sigma,2))*t)/(sigma*np.sqrt(t))
+    if option_type == 'Call':
+        epsilon = -(stock*np.exp(-q*t)*norm.cdf(d_1)-strike*np.exp(-r*t)*norm.cdf(d_2)-price)/(stock*np.exp(-q*t)*np.sqrt(t)*norm.pdf(d_1))
+    elif option_type == 'Put':
+        epsilon = -(-stock*np.exp(-q*t)*norm.cdf(-d_1)+strike*np.exp(-r*t)*norm.cdf(-d_2)-price)/(stock*np.exp(-q*t)*np.sqrt(t)*norm.pdf(d_1))
+    else:
+        return "NaN"
+    if time > 1000:
+        return "Too many recursions and may cause stack-over-flow !"
+    if abs(epsilon) < accuracy:
+        return sigma
+    else:
+        return calculate_vol_detail(option_type, sigma+epsilon, stock, strike, price, q, r, t, accuracy, time+1)
+ 
+def calculate_vol(r, q, stock, strike, t, price, option_type):
+    accuracy = 0.001
+    time = 0
+    sigma = np.sqrt(2*abs((np.log(stock/strike)+(r-q)*t)/(t)))
+    try:
+        result = calculate_vol_detail(option_type, sigma, stock, strike, price, q, r, t, accuracy, time+1)
+    except:
+        result = "NaN"
+    return result
 
-    dt = float(T) / val_num_steps
-    up_fact= np.exp(sigma * (dt ** 0.5))
-    down_fact = 1.0 / up_fact
-    prob_up = (np.exp((r ) * dt) - down_fact) / (up_fact - down_fact)
+def american_option(r, s_0, k, t, sigma, n, option_type):
+    up = np.exp(sigma*np.sqrt(t/n))
+    down = np.exp(-sigma*np.sqrt(t/n))
+    up_prob = (np.exp(r*t/n)-down)/(up-down)
+    down_prob = (up-np.exp(r*t/n))/(up-down)
+    value = {}
+    for i in range(n, -1, -1):
+        for j in range(i, -1, -1):
+            if option_type == "Call":
+                if i == n:
+                    value[(j, i)] = max(s_0*np.power(down,j)*np.power(up,i-j)-k,0)
+                else:
+                    value[(j, i)] = max(max(s_0*np.power(down,j)*np.power(up,i-j)-k,0), np.exp(-r*t/n)*\
+                         (up_prob*value[(j,i+1)]+down_prob*value[(j+1,i+1)]))
+            if option_type == "Put":
+                if i == n:
+                    value[(j, i)] = max(k-s_0*np.power(up,i-j)*np.power(down,j),0)
+                else:
+                    value[(j, i)] = max(max(k-s_0*np.power(up,i-j)*np.power(down,j),0), np.exp(-r*t/n)*\
+                         (up_prob*value[(j,i+1)]+down_prob*value[(j+1,i+1)]))
+    print (value)
+    return value[(0,0)]
+
+def geometric_asian_option(r, s_0, k, t, sigma, n, option_type):
+    sigma_bar = sigma*np.sqrt((n+1)*(2*n+1)/(6*n**2))
+    mu_bar = (r-0.5*sigma**2)*(n+1)/(2*n)+0.5*sigma_bar**2
+    d_1 = (np.log(s_0/k)+(mu_bar+0.5*sigma_bar**2)*t)/(sigma_bar*np.sqrt(t))
+    d_2 = (np.log(s_0/k)+(mu_bar-0.5*sigma_bar**2)*t)/(sigma_bar*np.sqrt(t))
+    if option_type == "Call":
+        return np.exp(-r*t)*(s_0*np.exp(mu_bar*t)*norm.cdf(d_1)-k*norm.cdf(d_2))
+    if option_type == "Put":
+        return np.exp(-r*t)*(k*norm.cdf(-d_2)-s_0*np.exp(mu_bar*t)*norm.cdf(-d_1))
     
-    def spot_price(num_ups, num_downs):
-        return (S0) * (up_fact ** (num_ups - num_downs))
-    def node_value(n, num_ups, num_downs):
-        value_cache_key = (n, num_ups, num_downs)
-        if value_cache_key not in val_cache:
-            spot = spot_price(num_ups, num_downs)
-            if  OptType == "CALL":
-                exer_profit = max(0, spot - S0)
-            else:  
-                exer_profit = max(0, S0 - spot)
-
-            if n >= val_num_steps:
-                val = exer_profit
+@jit  
+def arithmetic_asian_option(r, s_0, K, t, sigma, n, option_type, mc_times, control_variate):
+    df = np.exp(-r*t)
+    drift = (r-0.5*np.square(sigma))*t/n
+    squared_time = np.sqrt(t/n)
+    stock_matrix = np.zeros((mc_times,n))
+    for i in range(0, mc_times):
+        stock_matrix[i][0] = s_0
+        for j in range(0, n):
+            if j == 0:
+                stock_matrix[i][j] = s_0*np.exp(drift+sigma*squared_time*np.random.standard_normal())
             else:
-                fv = prob_up * node_value(n + 1, num_ups + 1, num_downs) + \
-                    (1 - prob_up) * node_value(n + 1, num_ups, num_downs + 1)
-                pv = np.exp(r * dt) * fv
-                val = max(pv, exer_profit)
-            val_cache[value_cache_key] = val
-        return val_cache[value_cache_key]
-
-    val = node_value(0, 0, 0)
-    return val
-
-def PriceByClosedFormulaForGmtrAsian(T, K, N,S0, r, sigma, OptType):
-    a = S0 * np.exp(-r * T) * np.exp((N + 1) * T) / (2 * N) *\
-               (r + (sigma * sigma / 2) * ((2 * N + 1) / (3 * N) - 1));
-    b = sigma * np.sqrt((N + 1) * (2 * N + 1) / 6 / (N * N));
-    return PriceByBSFormula(a, K, T, b, r)
-    
-    
-def PriceByClosedFormulaForGmtBasket(T, K, S1, S2, r, sigma1, sigma2, rho, OptType):
-    sigma_b = (sigma1 * sigma1 +sigma2 * sigma2 +2 *rho * sigma1 * sigma2) / 2
-    niu_b =( r - (sigma1 * sigma1 + sigma2 * sigma2) / 4 + sigma_b * sigma_b / 2)
-    S0_b = np.sqrt(S1 * S2)
-    return PriceByBSFormula(S0_b, K, T, sigma_b, niu_b, 0)
-
-
-def PriceByMCSimulationForArthmAsian(T, K, N,S0, r, sigma, OptType, NumPath, isGmtrCon =0):
-    dT = T/N
-    sqrtdT = np.sqrt(dT)
-    deltaValConst = np.exp((r - 0.5 * sigma * sigma) * dT)
-    sample = np.random.normal(size=(NumPath,N))#(3,2)
-    sample = np.exp(sample * sqrtdT * sigma) * deltaValConst * S0
-    if OptType == "CALL":
-        sample = np.maximum( sample -K, 0)
+                stock_matrix[i][j] = stock_matrix[i][j-1]*np.exp(drift+sigma*squared_time*np.random.standard_normal())
+    stock_matrix_arith = stock_matrix.mean(1)
+    print (stock_matrix_arith)
+    if option_type == "Call":
+        option_value = np.maximum(stock_matrix_arith - K, 0)*df
     else:
-        sample = np.maximum( K - sample , 0) 
-    if isGmtrCon ==0:                  
-        sampleNumPath = sample.sum(1)/N                          
-        mean_sampleNumPath = sampleNumPath.mean()
-        std_sampleNumPath = sampleNumPath.std()
-        
-        OptVal =  mean_sampleNumPath
-        LCI = mean_sampleNumPath - 1.96 * std_sampleNumPath
-        RCI = mean_sampleNumPath + 1.96 * std_sampleNumPath
-    else: 
-        GmtrConVal = PriceByClosedFormulaForGmtrAsian(T, K, N,S0, r, sigma, OptType)                  
-        sampleNumPath = sample.sum(1)/N
-        sampleNumPathGmtr= sample.prod(1)**(1/N)
-        sampleNumPathErrRed = sampleNumPath - sampleNumPathGmtr + GmtrConVal
-        mean_sampleErrRed = sampleNumPathErrRed.mean()
-        std_sampleErrRed = sampleNumPathErrRed.std()
-        
-        OptVal =  mean_sampleErrRed
-        LCI = mean_sampleErrRed - 1.96 * std_sampleErrRed
-        RCI = mean_sampleErrRed + 1.96 * std_sampleErrRed
-        
-    return OptVal, LCI, RCI
-
-
-def PriceByMCSimulationForArthmBasket(T, K, S1, S2, r, sigma1, sigma2, rho, OptType,NumPath, isGmtrCon =0):
-    sqrtT = np.sqrt(T)
-    deltaValConst1 = np.exp((r - 0.5 * sigma1 * sigma1) * T)
-    deltaValConst2 = np.exp((r - 0.5 * sigma1 * sigma1) * T)
-    sample_1 = np.random.normal(size=(NumPath,1))#(3,1)
-    sample_ = np.random.normal(size=(NumPath,1))
-    sample_2 = sample_1 * rho + np.sqrt(1 - rho * rho) * sample_
-    sample_1 = np.exp(sample_1 * sqrtT * sigma1) * deltaValConst1 * S1
-    sample_2 = np.exp(sample_2 * sqrtT * sigma2) * deltaValConst2 * S1
-    if OptType == "CALL":
-        sample_1 = np.maximum( sample_1 -K, 0)
-        sample_2 = np.maximum( sample_2 -K, 0)
+        option_value = np.maximum(K - stock_matrix_arith, 0)*df
+    if control_variate == False:
+        result_mean = option_value.mean()
+        result_stderr = option_value.std()/np.sqrt(mc_times)
     else:
-        sample_1 = np.maximum( K - sample_1, 0)
-        sample_2 = np.maximum( K - sample_2 , 0)
-    sample = (sample_1 +sample_2)/2                
-    if isGmtrCon == 0: 
-        mean_sample = sample.mean()
-        std_sample = sample.std()
-        OptVal =  mean_sample
-        LCI = mean_sample - 1.96 * std_sample
-        RCI = mean_sample + 1.96 * std_sample
-    else: 
-        GmtrConVal = PriceByClosedFormulaForGmtBasket(T, K, S1, S2, r, sigma1, sigma2, rho, OptType,NumPath)
-        sampleGmtr = sample_1 * sample_2 ** (1/2)
-        sampleErrRed = sample - sampleGmtr + GmtrConVal
-        mean_sampleErrRed = sampleErrRed.mean()
-        std_sampleErrRed = sampleErrRed.std()
+        geo_mean = geometric_asian_option(r, s_0, K, t, sigma, n, option_type)
+        stock_matrix_geo = stock_matrix.prod(1)**(1/n)
+        if option_type == "Call":
+            option_value_geo = np.maximum(stock_matrix_geo - K, 0)*df
+        else:
+            option_value_geo = np.maximum(K - stock_matrix_geo, 0)*df
+        theta = np.cov(option_value, option_value_geo)[0,1]/option_value_geo.var()
+        option_value_with_cv = option_value + theta*(geo_mean - option_value_geo)
+        result_mean = option_value_with_cv.mean()
+        result_stderr = option_value_with_cv.std()/np.sqrt(mc_times)
+    return result_mean, result_mean-1.96*result_stderr, result_mean+1.96*result_stderr
         
-        OptVal =  mean_sampleErrRed
-        LCI = mean_sampleErrRed - 1.96 * std_sampleErrRed
-        RCI = mean_sampleErrRed + 1.96 * std_sampleErrRed
-        
-    return OptVal, LCI, RCI
+    
+def geometric_basket_option(r, s1_0, s2_0, k, t, sigma1, sigma2, rho, option_type):
+    sigma_bar = np.sqrt(sigma1**2+sigma2**2+2*sigma1*sigma2*rho)/2
+    mu_bar = r - 0.5*(sigma1**2+sigma2**2)/2 + 0.5*sigma_bar**2
+    d_1 = (np.log(np.sqrt(s1_0*s2_0)/k) + (mu_bar+0.5*sigma_bar**2)*t)/(sigma_bar*np.sqrt(t))
+    d_2 = (np.log(np.sqrt(s1_0*s2_0)/k) + (mu_bar-0.5*sigma_bar**2)*t)/(sigma_bar*np.sqrt(t))
+    if option_type == "Call":
+        return np.exp(-r*t)*(np.sqrt(s1_0*s2_0)*np.exp(mu_bar*t)*norm.cdf(d_1)-k*norm.cdf(d_2))
+    if option_type == "Put":
+        return np.exp(-r*t)*(k*norm.cdf(-d_2)-np.sqrt(s1_0*s2_0)*np.exp(mu_bar*t)*norm.cdf(-d_1))
+    
+@jit
+def arithmetic_basket_option(r, s1_0, s2_0, k, t, sigma1, sigma2, rho, option_type, mc_times, control_variate):
+    geo_mean = geometric_basket_option(r, s1_0, s2_0, k, t, sigma1, sigma2, rho, option_type)
+    normal_random_1 = np.random.standard_normal(size = mc_times)
+    normal_random_temp = np.random.standard_normal(size = mc_times)
+    normal_random_2 = rho*normal_random_1 + np.sqrt(1-rho**2)*normal_random_temp
+    stock1 = s1_0*np.exp((r-0.5*sigma1**2)*t+sigma1*np.sqrt(t)*normal_random_1)
+    stock2 = s2_0*np.exp((r-0.5*sigma2**2)*t+sigma2*np.sqrt(t)*normal_random_2)
+    stock_matrix = np.column_stack((stock1, stock2))
+    stock_arith = stock_matrix.mean(1)
+    stock_geom = stock_matrix.prod(1)**(1/2)
+    if option_type == "Call":
+        option_arith = np.maximum(stock_arith-k,0)*np.exp(-r*t)
+        option_geom = np.maximum(stock_geom-k,0)*np.exp(-r*t)
+    else:
+        option_arith = np.maximum(k-stock_arith,0)*np.exp(-r*t)
+        option_geom = np.maximum(k-stock_geom,0)*np.exp(-r*t)
+    if control_variate == False:
+        result_mean = option_arith.mean()
+        result_std = option_arith.std()/np.sqrt(mc_times)
+    else:
+        cov = np.cov(option_arith, option_geom)[0,1]
+        theta = cov/option_geom.var()
+        option_arith_cv = option_arith + theta*(geo_mean - option_geom)
+        result_mean = option_arith_cv.mean()
+        result_std = option_arith_cv.std()/np.sqrt(mc_times)
+    return result_mean, result_mean-1.96*result_std, result_mean+1.96*result_std
 
+def arithmetic_basket_option_1(r, s1_0, s2_0, k, t, sigma1, sigma2, rho, option_type, mc_times, control_variate):
+    geo_mean = geometric_basket_option(r, s1_0, s2_0, k, t, sigma1, sigma2, rho, option_type)
+    geometric_mean, arithmetic_mean = [], []
+    for i in range (0,mc_times):
+        z_1 = np.random.normal(0,1)
+        z_temp = np.random.normal(0,1)
+        z_2 = rho*z_1+np.sqrt(1-rho**2)*z_temp
+        stock1_price = s1_0*np.exp((r-0.5*sigma1**2)*t+sigma1*np.sqrt(t)*z_1)
+        stock2_price = s2_0*np.exp((r-0.5*sigma2**2)*t+sigma2*np.sqrt(t)*z_2)
+        geometric_mean_mc = mstats.gmean([stock1_price,stock2_price])
+        arithmetic_mean_mc = np.mean([stock1_price,stock2_price])
+        if option_type == "Call":
+            geometric_mean.append(np.exp(-r*t)*max(geometric_mean_mc-k,0))
+            arithmetic_mean.append(np.exp(-r*t)*max(arithmetic_mean_mc-k,0))
+        else:
+            geometric_mean.append(np.exp(-r*t)*max(k-geometric_mean_mc,0))
+            arithmetic_mean.append(np.exp(-r*t)*max(k-arithmetic_mean_mc,0))
+    if control_variate == False:
+        result_mean = np.mean(arithmetic_mean)
+        result_std = np.sqrt(statistics.variance(arithmetic_mean))
+    else:
+        cov = np.cov(arithmetic_mean, geometric_mean)[0,1]
+        theta = cov/statistics.variance(geometric_mean)
+        print (cov, theta, np.mean(geometric_mean), geo_mean)
+        arithmetic_mean_cv = arithmetic_mean + theta*(geo_mean - geometric_mean)
+        result_mean = np.mean(arithmetic_mean_cv)
+        result_std = np.var(arithmetic_mean_cv)
+    print (result_mean, result_std)
+    return [result_mean-norm.ppf(0.95)*result_std/np.sqrt(mc_times), result_mean+norm.ppf(0.95)*result_std/np.sqrt(mc_times)]
+    
 if __name__=="__main__":
-    print (PriceBySnell(3, 100, 100, 0.05, 0.1, "CALL", 2000))
+    r = 0.05
+    t = 3
+    s_0 = 100 
+    s1_0=100
+    s2_0=100
+    k = 100
+    sigma = 0.3
+    q = 0
+    time = timer()
+    print("============================European=====================")
+    print(black_scholes_model(r, q, s_0, k, sigma, t, "Put"))
+    print(black_scholes_model(r, q, s_0, k, sigma, t, "Call"))
+    print("============================AMERICAN=====================")
+    print(american_option(r, s_0, k, t, sigma, 100, "Put"))
+    print(american_option(r, s_0, k, t, sigma, 100, "Call"))
+    print("============================GmtrAsian=====================")
     
-    
+    print (geometric_asian_option(r, s_0, k, t, sigma, 50, "Put"))
+    print (geometric_asian_option(r, s_0, k, t, sigma, 100, "Put"))
+    print (geometric_asian_option(r, s_0, k, t, 0.4, 50, "Put"))
+    print("Kay")
+    print (geometric_asian_option(r, s_0, k, t, sigma, 50, "Call"))
+    print (geometric_asian_option(r, s_0, k, t, sigma, 100, "Call"))
+    print (geometric_asian_option(r, s_0, k, t, 0.4, 50, "Call"))
+    print("===========================ArthmAsian NoCont=====================")
+    print("Kay")
+    print(arithmetic_asian_option(r, s_0, k, t, 0.3, 50, "Put", 100000, False))
+    print(arithmetic_asian_option(r, s_0, k, t, 0.3, 100, "Put", 30, False))
+    print(arithmetic_asian_option(r, s_0, k, t, 0.4, 50, "Put", 30, False))
+    print("Kay")
+    print(arithmetic_asian_option(r, s_0, k, t, 0.3, 50, "Call", 100000, False))
+    print(arithmetic_asian_option(r, s_0, k, t, 0.3, 100, "Call", 30, False))
+    print(arithmetic_asian_option(r, s_0, k, t, 0.4, 50, "Call", 30, False))
+    print("===========================ArthmAsian Cont=====================")
+    print("Kay")
+    print(arithmetic_asian_option(r, s_0, k, t, 0.3, 50, "Put", 100000, True))
+    print(arithmetic_asian_option(r, s_0, k, t, 0.3, 100, "Put", 30, True))
+    print(arithmetic_asian_option(r, s_0, k, t, 0.4, 50, "Put", 30, True))
+    print("Kay")
+    print(arithmetic_asian_option(r, s_0, k, t, 0.3, 50, "Call", 100000, True))
+    print(arithmetic_asian_option(r, s_0, k, t, 0.3, 100, "Call", 30, True))
+    print(arithmetic_asian_option(r, s_0, k, t, 0.4, 50, "Call", 30, True))
+    print("============================GmtrBasket=====================")
+    print(geometric_basket_option(r, s1_0, s2_0, k, t, 0.3, 0.3, 0.5, "Put"))
+    print(geometric_basket_option(r, s1_0, s2_0, k, t, 0.3, 0.3, 0.9, "Put"))
+    print(geometric_basket_option(r, s1_0, s2_0, k, t, 0.1, 0.3, 0.5, "Put"))
+    print(geometric_basket_option(r, s1_0, s2_0, 80, t, 0.3, 0.3, 0.5, "Put"))
+    print(geometric_basket_option(r, s1_0, s2_0, 120, t, 0.3, 0.3, 0.5, "Put"))
+    print(geometric_basket_option(r, s1_0, s2_0, k, t, 0.5, 0.5, 0.5, "Put"))
+    print("Kay")
+    print(geometric_basket_option(r, s1_0, s2_0, k, t, 0.3, 0.3, 0.5, "Call"))
+    print(geometric_basket_option(r, s1_0, s2_0, k, t, 0.3, 0.3, 0.9, "Call"))
+    print(geometric_basket_option(r, s1_0, s2_0, k, t, 0.1, 0.3, 0.5, "Call"))
+    print(geometric_basket_option(r, s1_0, s2_0, 80, t, 0.3, 0.3, 0.5, "Call"))
+    print(geometric_basket_option(r, s1_0, s2_0, 120, t, 0.3, 0.3, 0.5, "Call"))
+    print(geometric_basket_option(r, s1_0, s2_0, k, t, 0.5, 0.5, 0.5, "Call"))
+    print("============================ArthmBasket NOCont=====================")
+    print(arithmetic_basket_option(r, s1_0, s2_0, k, t, 0.3, 0.3, 0.5, "Put", 100000, False))
+    print(arithmetic_basket_option(r, s1_0, s2_0, k, t, 0.3, 0.3, 0.9, "Put", 100, False))
+    print(arithmetic_basket_option(r, s1_0, s2_0, k, t, 0.1, 0.3, 0.5, "Put", 100, False))
+    print(arithmetic_basket_option(r, s1_0, s2_0, 80, t, 0.3, 0.3, 0.5, "Put", 100, False))
+    print(arithmetic_basket_option(r, s1_0, s2_0, 120, t, 0.3, 0.3, 0.5, "Put", 100, False))
+    print(arithmetic_basket_option(r, s1_0, s2_0, k, t, 0.5, 0.5, 0.5, "Put", 100, False))
+    print("Kay")
+    print(arithmetic_basket_option(r, s1_0, s2_0, k, t, 0.3, 0.3, 0.5, "Call", 100000, False))
+    print(arithmetic_basket_option(r, s1_0, s2_0, k, t, 0.3, 0.3, 0.9, "Call", 100, False))
+    print(arithmetic_basket_option(r, s1_0, s2_0, k, t, 0.1, 0.3, 0.5, "Call", 100, False))
+    print(arithmetic_basket_option(r, s1_0, s2_0, 80, t, 0.3, 0.3, 0.5, "Call", 100, False))
+    print(arithmetic_basket_option(r, s1_0, s2_0, 120, t, 0.3, 0.3, 0.5, "Call", 100, False))
+    print(arithmetic_basket_option(r, s1_0, s2_0, k, t, 0.5, 0.5, 0.5, "Call", 100, False))   
+    print("============================ArthmBasket  Cont=====================")
+    print(arithmetic_basket_option(r, s1_0, s2_0, k, t, 0.3, 0.3, 0.5, "Put", 100000, True))
+    print(arithmetic_basket_option(r, s1_0, s2_0, k, t, 0.3, 0.3, 0.9, "Put", 100, True))
+    print(arithmetic_basket_option(r, s1_0, s2_0, k, t, 0.1, 0.3, 0.5, "Put", 100, True))
+    print(arithmetic_basket_option(r, s1_0, s2_0, 80, t, 0.3, 0.3, 0.5, "Put", 100, True))
+    print(arithmetic_basket_option(r, s1_0, s2_0, 120, t, 0.3, 0.3, 0.5, "Put", 100, True))
+    print(arithmetic_basket_option(r, s1_0, s2_0, k, t, 0.5, 0.5, 0.5, "Put", 100, True))
+    print("Kay")
+    print(arithmetic_basket_option(r, s1_0, s2_0, k, t, 0.3, 0.3, 0.5, "Call", 100000, True))
+    print(arithmetic_basket_option(r, s1_0, s2_0, k, t, 0.3, 0.3, 0.9, "Call", 100, True))
+    print(arithmetic_basket_option(r, s1_0, s2_0, k, t, 0.1, 0.3, 0.5, "Call", 100, True))
+    print(arithmetic_basket_option(r, s1_0, s2_0, 80, t, 0.3, 0.3, 0.5, "Call", 100, True))
+    print(arithmetic_basket_option(r, s1_0, s2_0, 120, t, 0.3, 0.3, 0.5, "Call", 100, True))
+    print(arithmetic_basket_option(r, s1_0, s2_0, k, t, 0.5, 0.5, 0.5, "Call", 100, True)) 
+    print("The total time is: " + str(timer() - time))
