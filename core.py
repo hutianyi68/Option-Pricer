@@ -62,7 +62,6 @@ def american_option(r, s_0, k, t, sigma, n, option_type):
                 else:
                     value[(j, i)] = max(max(k-s_0*np.power(up,i-j)*np.power(down,j),0), np.exp(-r*t/n)*\
                          (up_prob*value[(j,i+1)]+down_prob*value[(j+1,i+1)]))
-    print (value)
     return value[(0,0)]
 
 def geometric_asian_option(r, s_0, k, t, sigma, n, option_type):
@@ -89,7 +88,6 @@ def arithmetic_asian_option(r, s_0, K, t, sigma, n, option_type, mc_times, contr
             else:
                 stock_matrix[i][j] = stock_matrix[i][j-1]*np.exp(drift+sigma*squared_time*np.random.standard_normal())
     stock_matrix_arith = stock_matrix.mean(1)
-    print (stock_matrix_arith)
     if option_type == "Call":
         option_value = np.maximum(stock_matrix_arith - K, 0)*df
     else:
